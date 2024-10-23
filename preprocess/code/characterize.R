@@ -37,8 +37,8 @@ path_diff_data <- opt$path_diff_data
 path_output <- paste0(gsub("/$","",opt$path_output),"/") # Make sure it's ending with a slash
 list_motif <- str_split(opt$list_motif, ",", simplify=TRUE)[1,]
 list_model <- str_split(opt$type_model, ",", simplify=TRUE)[1,]
-genome_rev<-"reference/MH/MH_sequence.rev_comp.fasta"
-path_basecall<-"basecall/MH_diff.csv"
+genome_rev<-"reference/NG/NG_sequence.rev_comp.fasta"
+path_basecall<-"basecall/NG_diff.csv"
 basecall <- read.csv(path_basecall)
 genome <- opt$genome
 list_contig <- opt$list_contig
@@ -65,9 +65,9 @@ print_message("Determine motif signature center")
 # Determine motif signature center; approximation of modification position
 motif_center_summary <- find.signature.center(difference_data, motif_summary, genome, nb_threads, seq_params, iupac_nc, 6, 6, paste0(base_name,"_example"), path_output)
 motif_center_summary$col_motif <- as.vector(iwanthue(nrow(motif_center_summary))) # Add color to motifs
-sink("mid_data/MH_motif_center_summary_time.txt")
-print(motif_center_summary)
-sink()
+#sink("mid_data/MH_motif_center_summary_time.txt")
+#print(motif_center_summary)
+#sink()
 
 
 # Classify motif with requested model(s)
@@ -76,7 +76,7 @@ stifle <- foreach(model_name=list_model) %do% {
 	
 	# Load classifier models
 	model <- readRDS(file=paste0(path_models,"final_model_",model_version$basecaller,"_",model_version$version,"_",model_name,".RDS"))
-	c#lassification_results <- classify.detected.motifs(difference_data, base_name, motif_center_summary, model, genome, 0, TRUE, iupac_nc, nb_threads)
+	#classification_results <- classify.detected.motifs.time(difference_data, base_name, motif_center_summary, model, genome, 0, TRUE, iupac_nc, nb_threads)
 	#model <- readRDS(file="/home/nanodisco/my_train_models/loocv/All46_model_balance.RDS")
 	#classification_data <- prepare.meta.classification.data(difference_data, base_name, motif_summary, genome, 0, TRUE, iupac_nc, nb_threads)
 	# Predict modification type and position

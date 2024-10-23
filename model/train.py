@@ -805,7 +805,7 @@ if __name__ == '__main__':
         pin_memory=True
     )
     """
-    #"""
+    """
     #model_basic_group = CNN_basic(num_classes=21).to(device)
     model_basic_group= MotifNet3(input_size=12, hidden_size=64, num_classes=21).to(device) 
     #model_basic_group = ResNet18().to(device)#ComplexResidualMLP(layer_sizes=[4, 32, 36, 64, 104, 3], residual_layers=[1, 3]).to(device) #ResNet18()  

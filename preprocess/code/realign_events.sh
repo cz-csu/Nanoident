@@ -9,7 +9,7 @@ function check_ref_fasta (){
   fi
 }
 
-function check_bwa_index (){
+function check_bwaindex (){
   ref=$1
 
   if [ ! -e "$ref.amb" ] || [ ! -e "$ref.ann" ] || [ ! -e "$ref.pac" ] || [ ! -e "$ref.bwt" ] || [ ! -e "$ref.sa" ]; then
