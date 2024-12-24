@@ -130,6 +130,7 @@ class MotifNet3(nn.Module):
         self.layers111 = nn.Sequential(MyConvBlock(i,c,4),nn.BatchNorm1d(c),nn.ReLU(),nn.Dropout())
         self.layers1111 = nn.Sequential(nn.Conv1d(3*c, c, kernel_size=1),nn.BatchNorm1d(c),nn.Dropout())
         self.cls = nn.Sequential(nn.ReLU(),Flatten(),nn.Linear(9*c, num_classes))
+        self.po = nn.AdaptiveMaxPool1d(1)
         """
         self.layers1 = nn.Sequential(MyConvBlock(i,c,3),nn.BatchNorm1d(c),nn.ReLU(),MyConvBlock(c,c,2),nn.BatchNorm1d(c),nn.ReLU())
         self.layers11 = nn.Sequential(MyConvBlock(i,c,2),nn.BatchNorm1d(c),nn.ReLU(),MyConvBlock(c,c,2),nn.BatchNorm1d(c),nn.ReLU(),MyConvBlock(c,c,2),nn.BatchNorm1d(c),nn.ReLU())
@@ -143,8 +144,10 @@ class MotifNet3(nn.Module):
         mean_1 = self.layers1(mean)
         mean_2 = self.layers11(mean)
         mean_3 = self.layers111(mean)
-        mean4 = self.layers1111(torch.cat((mean_1,mean_2,mean_3), dim=1))
-        mean4+=(mean_1+mean_2+mean_3)
+        mean_cat=torch.cat((mean_1,mean_2,mean_3), dim=1)
+        mean_cat=mean_cat*F.softmax(self.po(mean_cat),dim=1)
+        mean4 = self.layers1111(mean_cat)
+        mean4=mean4+(mean_1+mean_2+mean_3)
         mean4=self.cls(mean4)
 
         return mean4
@@ -584,19 +587,29 @@ if __name__ == '__main__':
     true_label_offset["BA"]=[4,1]
     """
     bacterials_set=["BA","BF","CP","EC","HP","MH","NG"] #["BA","BF","CP","EC","HP","MH","NG"]
-    bacterials_set=["HP"]
+    #bacterials_set=["HP"]
     #motifs_test["HP"]=["G6mAGG"]
-    motifs_test["HP"]=["T4mCTTC"]
+    #motifs_test["HP"]=["T4mCTTC"]
     #true_label["HP"]=[17]
-    true_label["HP"]=[11]
+    #true_label["HP"]=[11]
     model = MotifNet3(input_size=12, hidden_size=64, num_classes=21).to(device)
     MEAN_total=0
-    with open('log_test_T4mCTTC.txt', 'a') as f:
+    motif_num={}
+    motif_acc={}
+    motif_acc_final={}
+    motif_num["GAT5mC"]=[17300,7664]
+    motif_num["G6mATC"]=[28187,27440]
+    motif_num["GG5mCC"]=[829,6508]
+    motif_acc["GAT5mC"]=[]
+    motif_acc["G6mATC"]=[]
+    motif_acc["GG5mCC"]=[]
+    with open('log_test_new.txt', 'a') as f:
         for bacterial in bacterials_set:
             MEAN=0
-            print(bacterial,file=f)
+            #print(bacterial,file=f)
             for i,motif_item in enumerate(motifs_test[bacterial]):
-                #print(motif_item,file=f)
+                #if motif_item=="GAT5mC":
+                print(motif_item,file=f)
                 model.load_state_dict(torch.load(f"/home/nipeng/chenzheng/mulan-methyl/my_model/mlp_mean_{motif_item}.pt"))
                 y_score=[]
                 y_basic_score=[]
@@ -654,8 +667,24 @@ if __name__ == '__main__':
                 most_num=result.idxmax()
                 accuracy=int(round(result[true_label[bacterial][i]]/len(dataset_test),2)*100)
                 MEAN+=accuracy
-                MEAN_total+=accuracy
+                #print(accuracy,file=f)
+                if (bacterial=="BF" or bacterial=="CP") and motif_item=="GAT5mC":
+                    motif_acc["GAT5mC"].append(accuracy)
+                elif (bacterial=="EC" or bacterial=="MH") and motif_item=="G6mATC":
+                    motif_acc["G6mATC"].append(accuracy)
+                elif (bacterial=="HP" or bacterial=="NG") and motif_item=="GG5mCC":
+                    motif_acc["GG5mCC"].append(accuracy)
+                else:
+                    MEAN_total+=accuracy
                 print(map_list[motif_item]," ",accuracy," ",len(dataset_test),file=f)
 
-            print(round(MEAN/len(true_label[bacterial])),file=f)
-        print(round(MEAN_total/49,2),file=f)
+            #print(round(MEAN/len(true_label[bacterial])),file=f)
+        #print(round(MEAN_total/49,2),file=f)
+        motif_twice=["GAT5mC","G6mATC","GG5mCC"]
+        print(motif_acc)
+        for item in motif_twice:
+            motif_acc_final[item]=(motif_acc[item][0]*motif_num[item][0]+motif_acc[item][1]*motif_num[item][1])/(motif_num[item][0]+motif_num[item][1])
+            MEAN_total+=motif_acc_final[item]
+        print(round(MEAN_total/46,2),file=f)
+        print(motif_acc_final,file=f)
+

@@ -14,7 +14,7 @@ import os
 from torch.nn import functional as F
 from sklearn.preprocessing import label_binarize
 import matplotlib.pyplot as plt
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+os.environ['CUDA_VISIBLE_DEVICES'] = "2"
 #from sklearn.datasets import load_wine
 """
 import rpy2.robjects as robjects
@@ -112,6 +112,23 @@ def normalize_test_b(x,std=False,time=False,avg_basequality=False,base_num_fract
     x=(x - para_mean_b[i]) / (para_std_b[i] * 1.0)
     #print(para_max[i],para_min[i],para_std[i],para_mean[i])
     return (x-para_min_b[i])/(para_max_b[i]-para_min_b[i]) 
+class SELayer(nn.Module):
+    def __init__(self, channel, reduction=16):
+        super(SELayer, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(channel, channel // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(channel, channel, bias=False),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1)
+        return x * y.expand_as(x)
+
 class MotifNet3(nn.Module):
     def __init__(self, input_size=22, hidden_size=128, num_classes=3):
         super(MotifNet3, self).__init__()
@@ -130,6 +147,8 @@ class MotifNet3(nn.Module):
         self.layers111 = nn.Sequential(MyConvBlock(i,c,4),nn.BatchNorm1d(c),nn.ReLU(),nn.Dropout())
         self.layers1111 = nn.Sequential(nn.Conv1d(3*c, c, kernel_size=1),nn.BatchNorm1d(c),nn.Dropout())
         self.cls = nn.Sequential(nn.ReLU(),Flatten(),nn.Linear(9*c, num_classes))
+
+        self.po = nn.AdaptiveMaxPool1d(1)
         """
         self.layers1 = nn.Sequential(MyConvBlock(i,c,3),nn.BatchNorm1d(c),nn.ReLU(),MyConvBlock(c,c,2),nn.BatchNorm1d(c),nn.ReLU())
         self.layers11 = nn.Sequential(MyConvBlock(i,c,2),nn.BatchNorm1d(c),nn.ReLU(),MyConvBlock(c,c,2),nn.BatchNorm1d(c),nn.ReLU(),MyConvBlock(c,c,2),nn.BatchNorm1d(c),nn.ReLU())
@@ -143,8 +162,10 @@ class MotifNet3(nn.Module):
         mean_1 = self.layers1(mean)
         mean_2 = self.layers11(mean)
         mean_3 = self.layers111(mean)
-        mean4 = self.layers1111(torch.cat((mean_1,mean_2,mean_3), dim=1))
-        mean4+=(mean_1+mean_2+mean_3)
+        mean_cat=torch.cat((mean_1,mean_2,mean_3), dim=1)
+        mean_cat=mean_cat*F.softmax(self.po(mean_cat),dim=1)
+        mean4 = self.layers1111(mean_cat)
+        mean4=mean4+(mean_1+mean_2+mean_3)
         mean4=self.cls(mean4)
 
         return mean4
@@ -389,7 +410,7 @@ if __name__ == '__main__':
     #motifs_set=["GAT5mC","GAT5mC"]
     print(len(motifs_set1)+len(motifs_set2)+len(motifs_set3)+len(motifs_set4))
     with open('log4.txt', 'a') as f:
-        for motif in motifs_set1:
+        for motif in motifs_set4:
                 # 设置随机种子，让模型每次输出的结果都一样
             seed_value = 42
             random.seed(seed_value)                         # 设置 random 模块的随机种子
