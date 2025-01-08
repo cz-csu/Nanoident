@@ -11,6 +11,7 @@ A multi-column convolutional neural network model for typing and fine mapping of
 # Contents
 
 - [MotifNet](#motifnet)
+- [Contents](#contents)
 - [Prerequisites](#prerequisites)
 - [Data Preprocess](#data-preprocess)
 - [MotifNet train and test](#motifnet-train-and-test)
