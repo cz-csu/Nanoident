@@ -47,28 +47,51 @@ conda env create -f freeze.yml
 # Data Preprocess
 In this part we need to use the modified nanodisco to preprocess the data.We should install nanodisco and bam-readcount first.
 
-Replace the code folder in the original nanodisco repository with MotifNet/preprocess/code folder. The original nanodisco could only handle mean features, and we modified some of the code to handle four additional features (std, time,the proportion of reference bases, average quality score). We also added base feature to facilitate positional correction.
+Run the update.sh to update origin data preprocess function of nanodisco. The original nanodisco could only handle mean features, and we modified it to handle four additional features (std, time,the proportion of reference bases, average quality score). We also added base feature to facilitate positional correction.
+```bash
+chmod +x ./process/code/update.sh
+#-p is followed by the path of the nanodisco container that was built
+bash ./process/code/update.sh -p /home/chenzh/Project1_1/nd_example2
+```
 
 First, we need to pre-process the necessary files from the original nanopore signal:
 ```bash
-chmod +x MotifNet_preprocess.sh
-bash code/MotifNet_preprocess.sh dataset/unzip_data/MinION_NO_WGA dataset/unzip_data/MinION_NO_NAT NO_WGA NO_NAT reference/NO/NO_sequence.fasta analysis/NO/preprocessed_subset analysis/NO/difference_subset analysis NO
+#Pass in the parameters in the following order
+#DATASET_WGA_PATH=$1
+#DATASET_NAT_PATH=$2
+#SAMPLE_WGA_NAME=$3
+#SAMPLE_NAT_NAME=$4
+#REF_PATH=$5
+#PRE_OUTPUT_DIR=$6 (Preprocess)
+#DIFF_OUTPUT_DIR=$7 (The WGA and NAT files need to be subtracted)
+#MERGE_OUTPUT_DIR=$8 (Because of memory constraints, we need to preprocess in chunks first, and then we need to merge)
+#MERGE_NAME=$9
+chmod +x ./process/code/MotifNet_preprocess.sh
+bash ./process/code/MotifNet_preprocess.sh dataset/unzip_data/MinION_NO_WGA dataset/unzip_data/MinION_NO_NAT NO_WGA NO_NAT reference/NO/NO_sequence.fasta analysis/NO/preprocessed_subset analysis/NO/difference_subset analysis NO
 ```
 
 To do motif enrichment:
 
 ```bash
-chmod +x MotifNet_enrich.sh
-bash code/MotifNet_enrich.sh NO analysis/NO_subset_difference.RDS analysis/NO reference/NO/NO_sequence.fasta
+#Pass in the parameters in the following order
+#Bactrial_name=$1
+#DIFF_PATH=$2
+#MOTIF_ENRICH_OUTPUT_PATH=$3
+#REF_PATH=$4
+chmod +x ./process/code/MotifNet_enrich.sh
+bash ./process/code/MotifNet_enrich.sh NO analysis/NO_subset_difference.RDS analysis/NO reference/NO/NO_sequence.fasta
 ```
 
 
 To get basecall feature:
 
 ```bash
-
-chmod +x MotifNet_readcount.sh
-bash code/MotifNet_readcount.sh /home/chenzh/Project1_1/nd_example2/home/nanodisco/reference/NO/NO_sequence.fasta /home/chenzh/Project1_1/nd_example2/home/nanodisco/analysis/NO/preprocessed_subset/NO_NAT.fasta /home/chenzh/readcount/NO_NAT_fq.tsv
+#Pass in the parameters in the following order
+#REF_PATH=$1
+#DATA_PATH=$2
+#OUTPUT_PATH=$3
+chmod +x ./process/code/MotifNet_readcount.sh
+bash ./process/code/MotifNet_readcount.sh /home/chenzh/Project1_1/nd_example2/home/nanodisco/reference/NO/NO_sequence.fasta /home/chenzh/Project1_1/nd_example2/home/nanodisco/analysis/NO/preprocessed_subset/NO_NAT.fasta /home/chenzh/readcount/NO_NAT_fq.tsv
 
 ```
 
@@ -76,15 +99,21 @@ bash code/MotifNet_readcount.sh /home/chenzh/Project1_1/nd_example2/home/nanodis
 
 ## Get train and valid data
 ```bash
-Rscript code/train.R
+Rscript ./code/MotifNet_traindata.R
 ```
 You may need to change my results path in the function.
 
 ## Get test data
 
 ```bash
-chmod +x MotifNet_testdata.sh
-bash code/MotifNet_testdata.sh
+#Pass in the parameters in the following order
+#Bactrial_PATH=${1:-"NO"}
+#DIFF_PATH=${2:-"analysis/NO_subset_difference.RDS"}
+#OUTPUT_PATH=${3:-"analysis/NO/NO_motifs_my_train"}
+#Motif=${4:-"analysis/NO/NO_motifs_my_train"}
+#REF_PATH=${5:-"reference/NO/NO_sequence.fasta"}
+chmod +x ./code/MotifNet_testdata.sh
+bash ./code/MotifNet_testdata.sh
 ```
 
 ## Change data form
@@ -94,15 +123,15 @@ Since the data we are working with is in an R environment, we need to convert it
 ## Train and test MotifNet model
 
 ```bash
-python model/train_test.py
+python ./model/train_test.py
 ```
 This file also contains a section for test results.
 
 ## Do loocv evaluation
 
 ```bash
-python model/train_loocv_model.py
-python model/train_loocv_test.py
+python ./model/train_loocv_model.py
+python ./model/train_loocv_test.py
 ```
 # Data availability
 
