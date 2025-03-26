@@ -42,9 +42,9 @@ Use Nanoident/env/freeze.yml to generate the environment directly under conda.
 conda env create -f freeze.yml
 ```
 # Data Preprocess
-In this part we need to use the modified nanodisco to preprocess the data.We should install nanodisco and bam-readcount first.
+In this part we need to  preprocess the data. We should install nanodisco and bam-readcount first.
 
-Run the update.sh to update origin data preprocess function of nanodisco. The original nanodisco could only handle mean features, and we modified it to handle four additional features (std, time,the proportion of reference bases, average quality score). We also added base feature to facilitate positional correction.
+Run the update.sh. The original nanodisco could only handle mean features, but Nanoident can handle four additional features (std, time,the proportion of reference bases, average quality score). We also added base feature to facilitate positional correction.
 ```bash
 chmod +x ./process/code/update.sh
 #-p is followed by the path of the nanodisco container that was built
