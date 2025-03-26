@@ -1,24 +1,21 @@
-# MotifNet
-A multi-column convolutional neural network model for typing and fine mapping of various bacterial methylation motifs using Nanopore Sequencing.
+# Nanoident
+A multi-column convolutional neural network model for typing (the identification of methylation types) and fine mapping (the identification of methylated base positions) of various bacterial methylation motifs using Nanopore Sequencing.
 
-## Workflow
+## Pipeline
 
-![示例图片](./fig/workflow.jpg)
-
-## Model Architecture
 ![示例图片](./fig/net.jpg )
 
 # Contents
 
-- [MotifNet](#motifnet)
+- [Nanoident](#nanoident)
 - [Contents](#contents)
 - [Prerequisites](#prerequisites)
 - [Data Preprocess](#data-preprocess)
-- [MotifNet train and test](#motifnet-train-and-test)
+- [Nanoident train and test](#nanoident-train-and-test)
   - [Get train and valid data](#get-train-and-valid-data)
   - [Get test data](#get-test-data)
   - [Change data form](#change-data-form)
-  - [Train and test MotifNet model](#train-and-test-motifNet-model)
+  - [Train and test Nanoident model](#train-and-test-nanoident-model)
   - [Do loocv evaluation](#do-loocv-evaluation)
 - [Data availability](#data-availability)
   - [Train Data](#train-data)
@@ -31,7 +28,7 @@ A multi-column convolutional neural network model for typing and fine mapping of
 
 # Prerequisites
 
-There are two environments to build, an R environment for data preprocessing and motif enrichment, and a python environment for MotifNet model training.
+There are two environments to build, an R environment for data preprocessing and motif enrichment, and a python environment for Nanoident model training.
 
 **R:**
 
@@ -39,7 +36,7 @@ follow the nanodisco (https://github.com/fanglab/nanodisco/tree/master) to build
 
 **python:**
 
-Use MotifNet/env/freeze.yml to generate the environment directly under conda.
+Use Nanoident/env/freeze.yml to generate the environment directly under conda.
 
 ```bash
 conda env create -f freeze.yml
@@ -66,8 +63,8 @@ First, we need to pre-process the necessary files from the original nanopore sig
 #DIFF_OUTPUT_DIR=$7 (The WGA and NAT files need to be subtracted)
 #MERGE_OUTPUT_DIR=$8 (Because of memory constraints, we need to preprocess in chunks first, and then we need to merge)
 #MERGE_NAME=$9
-chmod +x ./process/code/MotifNet_preprocess.sh
-bash ./process/code/MotifNet_preprocess.sh dataset/unzip_data/MinION_NO_WGA dataset/unzip_data/MinION_NO_NAT NO_WGA NO_NAT reference/NO/NO_sequence.fasta analysis/NO/preprocessed_subset analysis/NO/difference_subset analysis NO
+chmod +x ./process/code/Nanoident_preprocess.sh
+bash ./process/code/Nanoident_preprocess.sh dataset/unzip_data/MinION_NO_WGA dataset/unzip_data/MinION_NO_NAT NO_WGA NO_NAT reference/NO/NO_sequence.fasta analysis/NO/preprocessed_subset analysis/NO/difference_subset analysis NO
 ```
 
 To do motif enrichment:
@@ -78,8 +75,8 @@ To do motif enrichment:
 #DIFF_PATH=$2
 #MOTIF_ENRICH_OUTPUT_PATH=$3
 #REF_PATH=$4
-chmod +x ./process/code/MotifNet_enrich.sh
-bash ./process/code/MotifNet_enrich.sh NO analysis/NO_subset_difference.RDS analysis/NO reference/NO/NO_sequence.fasta
+chmod +x ./process/code/Nanoident_enrich.sh
+bash ./process/code/Nanoident_enrich.sh NO analysis/NO_subset_difference.RDS analysis/NO reference/NO/NO_sequence.fasta
 ```
 
 
@@ -90,16 +87,16 @@ To get basecall feature:
 #REF_PATH=$1
 #DATA_PATH=$2
 #OUTPUT_PATH=$3
-chmod +x ./process/code/MotifNet_readcount.sh
-bash ./process/code/MotifNet_readcount.sh /home/chenzh/Project1_1/nd_example2/home/nanodisco/reference/NO/NO_sequence.fasta /home/chenzh/Project1_1/nd_example2/home/nanodisco/analysis/NO/preprocessed_subset/NO_NAT.fasta /home/chenzh/readcount/NO_NAT_fq.tsv
+chmod +x ./process/code/Nanoident_readcount.sh
+bash ./process/code/Nanoident_readcount.sh /home/chenzh/Project1_1/nd_example2/home/nanodisco/reference/NO/NO_sequence.fasta /home/chenzh/Project1_1/nd_example2/home/nanodisco/analysis/NO/preprocessed_subset/NO_NAT.fasta /home/chenzh/readcount/NO_NAT_fq.tsv
 
 ```
 
-# MotifNet train and test
+# Nanoident train and test
 
 ## Get train and valid data
 ```bash
-Rscript ./code/MotifNet_traindata.R
+Rscript ./code/Nanoident_traindata.R
 ```
 You may need to change my results path in the function.
 
@@ -112,15 +109,15 @@ You may need to change my results path in the function.
 #OUTPUT_PATH=${3:-"analysis/NO/NO_motifs_my_train"}
 #Motif=${4:-"analysis/NO/NO_motifs_my_train"}
 #REF_PATH=${5:-"reference/NO/NO_sequence.fasta"}
-chmod +x ./code/MotifNet_testdata.sh
-bash ./code/MotifNet_testdata.sh
+chmod +x ./code/Nanoident_testdata.sh
+bash ./code/Nanoident_testdata.sh
 ```
 
 ## Change data form
 
 Since the data we are working with is in an R environment, we need to convert it to a pkl file that can be used in a python environment using data_from_R_to_python.ipynb.
 
-## Train and test MotifNet model
+## Train and test Nanoident model
 
 ```bash
 python ./model/train_test.py
@@ -175,4 +172,4 @@ The reference sequences of the bacteria samples are available at NCBI with the a
 
 # Pretrained model
 
-you can just use the model we provide in best_model/MotifNet.pt, you can run postprocess.py achieve the best results with  module.
+you can just use the model we provide in best_model/Nanoident.pt, you can run postprocess.py achieve the best results with  module.
