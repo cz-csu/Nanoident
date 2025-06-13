@@ -1,5 +1,5 @@
 # Nanoident
-A multi-column convolutional neural network model for typing (the identification of methylation types) and fine mapping (the identification of methylated base positions) of various bacterial methylation motifs using Nanopore Sequencing.
+A multi-column convolutional neural network model for typing (the identification of methylation types) and fine mapping (the identification of methylated base positions) of various bacterial methylation motifs using Nanopore Sequencing. (DOI:10.6084/m9.figshare.29252264)
 
 ## Pipeline
 
